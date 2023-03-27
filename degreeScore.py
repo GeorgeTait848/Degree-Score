@@ -70,32 +70,21 @@ class UniversityYear:
         totalCredits = self.calculateTotalCredits()
 
         if totalCredits < 120:
-            print('Note, the modules you have given are do not equal 120 so this is a projected score.')
+            print('\n Note, in year {}, the modules you have given are do not equal 120 so this is a projected score. \n'.format(self.yearNumber))
 
         return 100*achievedCredits/totalCredits
 
 
+@dataclass 
+class Degree:
+
+    years: list[UniversityYear]
+
+    def calculateDegreeScore(self):
+        
+        weights = [year.yearWeightPercentage for year in self.years]
+        scores = [year.calculateYearScorePercentage() for year in self.years]
+
+        return round(np.average(scores, weights=weights))
 
     
-
-def main():
-    
-    year3Modules = [
-        Module('Nuclear Physics', 10, [ModuleAssessment(Assessment.EXAM, 100, 67)]), 
-        Module('Introduction to Differential Geometry', 10, [ModuleAssessment(Assessment.EXAM, 100, 98)]),
-        Module('Introduction to Dynamical Systems', 10, [ModuleAssessment(Assessment.EXAM, 100, 69)]), 
-        Module('Research Methods in Physics', 15, [ModuleAssessment(Assessment.COURSEWORK, 50, 74), ModuleAssessment(Assessment.COURSEWORK, 50, 67)]), 
-    ]
-
-    year3 = UniversityYear(
-        yearNumber = 3, 
-        yearWeightPercentage = 40,
-        modules=year3Modules
-        )
-
-    print(year3.calculateYearScorePercentage())
-
-
-
-if __name__ == "__main__":
-    main()
