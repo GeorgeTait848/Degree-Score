@@ -35,6 +35,7 @@ def main():
     myDegree = Degree(years=[year2, year3])
 
     print(myDegree.calculateDegreeScore())
+    print(myDegree.calculateRequiredAverageForTargetScore(80))
 
 
 
