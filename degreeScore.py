@@ -12,6 +12,7 @@ class MoreThanOneYearInProgressError(Exception):
 class TargetGradeNotPossibleError(Exception):
     pass
 
+
 class Assessment(Enum):
 
     COURSEWORK = "coursework"
@@ -88,48 +89,63 @@ class Degree:
 
     def calculateDegreeScore(self) -> int:
         
-        weights = [year.yearWeightPercentage for year in self.years]
+        weights = [year.yearWeightPercentage/100 for year in self.years]
         scores = [year.calculateYearScorePercentage() for year in self.years]
 
         return round(np.average(scores, weights=weights))
+
+    def _getYearInProgress(self):
+
+        yearsInProgress = list(filter(lambda year: year.calculateTotalCredits() < 120, self.years))
+
+        if yearsInProgress == []:
+            return None
+        
+        if len(yearsInProgress) > 1:
+            raise MoreThanOneYearInProgressError()
+        
+        return yearsInProgress[0]
+
+    def _getYearInProgressScoreCreditsAndWeights(self):
+
+        yearInProgress = self._getYearInProgress()
+
+        if yearInProgress == None:
+            yipRemainingCredits, yipWeight, yipScore = 0,0,0
+
+        else: 
+            yipRemainingCredits = 120 - yearInProgress.calculateTotalCredits() 
+            yipWeight = yearInProgress.yearWeightPercentage/100
+            yipScore = yearInProgress.calculateYearScorePercentage()
+        
+        return yipScore, yipRemainingCredits, yipWeight
+
+
 
     def calculateRequiredAverageForTargetScore(self, targetScore: int): 
 
         '''Calculated via the equation: 
         
-        t = (x - (1  -W_R)*S_P + W_1*S_1*r/120)/(W_1*r/120 + W_R)
+        A_R = (S_T - (1  - W_R)*S_P + W_1*S_1*r/120)/(W_1*r/120 + W_R)
 
         Where:
-        x is the target score
-        t is the required average to acquire this score
-        S_P is the current degree score, projected.
-        The subscript 1 refers to any year in progress, if there is one. 
-        r is the remanining credits of the year in progress
+        A_R is the required average to achieve target score S_T.
         W_R is the total weight percentage of any years that are yet to be completed
+        S_P is the current projected degree score.
+        W_1,S_1 are the weight, projected score of the current year, respectively.
+        r is the remanining credits of the year in progress
+        W_R is the total weight of uncompleted years. 
+        
         '''
 
         remainingYearWeights = 1 - 0.01 * np.sum([year.yearWeightPercentage for year in self.years])
-        yearsInProgress = list(filter(lambda year: year.calculateTotalCredits() < 120, self.years))
+        yearsInProgress = self._getYearInProgress()
 
-        if remainingYearWeights == 0 and yearsInProgress == []:
-            raise CompletedDegreeError()
-
-        if len(yearsInProgress) > 1: 
-            raise MoreThanOneYearInProgressError()
-        
-
-        if yearsInProgress == []:
-            yipRemainingCredits, yipWeight, yipScore = 0,0,0
-
-        else: 
-            yearInProgress = yearsInProgress[0]
-            yipRemainingCredits = 120 - yearInProgress.calculateTotalCredits() 
-            yipWeight = yearInProgress.yearWeightPercentage/100
-            yipScore = yearInProgress.calculateYearScorePercentage()
-        
+        yipProjectedScore, yipRemainingCredits, yipWeight = self._getYearInProgressScoreCreditsWeights()
+    
         currentScore = self.calculateDegreeScore()
 
-        requiredScore = (targetScore - currentScore*(1-remainingYearWeights) + yipWeight * yipScore * yipRemainingCredits / 120)/ \
+        requiredScore = (targetScore - currentScore*(1-remainingYearWeights) + yipWeight * yipProjectedScore * yipRemainingCredits / 120)/ \
         (yipWeight*yipRemainingCredits/120 + remainingYearWeights)
 
         
