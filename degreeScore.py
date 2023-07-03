@@ -2,6 +2,8 @@ from enum import Enum
 from dataclasses import dataclass
 import numpy as np
 import math
+import plotly.graph_objects as go
+from styles import degScoreProjectionStyle as plotsty
 
 class CompletedDegreeError(Exception):
     pass
@@ -10,6 +12,9 @@ class MoreThanOneYearInProgressError(Exception):
     pass
 
 class TargetGradeNotPossibleError(Exception):
+    pass
+
+class InvalidYesOrNoInputError(Exception):
     pass
 
 
@@ -119,6 +124,10 @@ class Degree:
             yipScore = yearInProgress.calculateYearScorePercentage()
         
         return yipScore, yipRemainingCredits, yipWeight
+    
+    def _getTotalWeightOfRemainingYears(self):
+
+        return 1 - 0.01 * np.sum([year.yearWeightPercentage for year in self.years])
 
 
 
@@ -138,10 +147,9 @@ class Degree:
         
         '''
 
-        remainingYearWeights = 1 - 0.01 * np.sum([year.yearWeightPercentage for year in self.years])
-        yearsInProgress = self._getYearInProgress()
+        remainingYearWeights = self._getTotalWeightOfRemainingYears()
 
-        yipProjectedScore, yipRemainingCredits, yipWeight = self._getYearInProgressScoreCreditsWeights()
+        yipProjectedScore, yipRemainingCredits, yipWeight = self._getYearInProgressScoreCreditsAndWeights()
     
         currentScore = self.calculateDegreeScore()
 
@@ -152,9 +160,58 @@ class Degree:
         requiredScore = math.ceil(requiredScore)
 
         if requiredScore > 100: 
-            raise TargetGradeNotPossibleError()
+
+            inp = input('This target score is impossible as you would need to average greater than 100, would you like to get a projections plot? y/n: ')
+            if inp != 'y' and inp != 'n':
+                raise InvalidYesOrNoInputError()
+            
+            if inp == 'n': 
+                return
+            
+            self.getScoreProjectionsPlot()
+            return
+            
         
         return requiredScore
+    
+    def _calcFinalScore(self, remainingAverage):
+
+        remainingYearWeights = self._getTotalWeightOfRemainingYears()
+
+        yipProjectedScore, yipRemainingCredits, yipWeight = self._getYearInProgressScoreCreditsAndWeights()
+    
+        currentScore = self.calculateDegreeScore()
+
+        finalScore = (1-remainingYearWeights)*currentScore - yipWeight*yipProjectedScore*yipRemainingCredits/120 \
+            + remainingAverage * (yipWeight*yipRemainingCredits/120 + remainingYearWeights)
+
+        return math.floor(finalScore)
+
+    def getScoreProjectionsPlot(self, start=40, stop=100, increment = 5):
+
+        if stop > 100: 
+            raise TargetGradeNotPossibleError()
+        
+        averages = list(np.arange(start, stop+increment, increment))
+        finalScores = [self._calcFinalScore(avg) for avg in averages]
+
+        fig = go.Figure()
+        fig.update_layout(**plotsty['layout'])
+        fig.update_layout(**plotsty['axes'])
+        fig.update_layout(
+        title_text='<b>DEGREE SCORE PROJECTION FROM CURRENT SCORE {}</b>'.format(self.calculateDegreeScore()), 
+        xaxis_title = 'Average Score For Remainder Of Degree', 
+        yaxis_title = 'Final Degree Score'
+        )
+
+        fig.add_trace(go.Scatter(x=averages, y=finalScores, marker_color='#aa8c2c'))
+        fig.show()
+
+
+
+
+
+
 
 
         

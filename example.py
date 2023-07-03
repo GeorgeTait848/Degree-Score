@@ -36,7 +36,7 @@ def main():
 
     print(myDegree.calculateDegreeScore())
     print(myDegree.calculateRequiredAverageForTargetScore(80))
-
+    myDegree.getScoreProjectionsPlot()
 
 
 if __name__ == "__main__":
