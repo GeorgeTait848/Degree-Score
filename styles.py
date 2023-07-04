@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 gridcolor = 'rgba(255,255,255,0.15)'
 textcolor = 'rgba(255,255,255,0.4)'
-bgcolor = '#262628'
+bgcolor = '#000'
 
 
 degScoreProjectionStyle = {
