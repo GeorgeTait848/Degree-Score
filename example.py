@@ -17,7 +17,17 @@ def main():
         Module('Nuclear Physics', 10, [ModuleAssessment(Assessment.EXAM, 100, 67)]), 
         Module('Introduction to Differential Geometry', 10, [ModuleAssessment(Assessment.EXAM, 100, 98)]),
         Module('Introduction to Dynamical Systems', 10, [ModuleAssessment(Assessment.EXAM, 100, 69)]), 
-        Module('Research Methods in Physics', 15, [ModuleAssessment(Assessment.COURSEWORK, 50, 74), ModuleAssessment(Assessment.COURSEWORK, 50, 67)]), 
+        Module('Research Methods in Physics', 30, [ModuleAssessment(Assessment.COURSEWORK, 25, 74), ModuleAssessment(Assessment.COURSEWORK, 25, 67),ModuleAssessment(Assessment.EXAM, 50, 64)]),
+        Module('High Energy and Plasma Physics', 10, [ModuleAssessment(Assessment.EXAM, 100, 95)]), 
+        Module('Linear Differential Equations', 10, [ModuleAssessment(Assessment.EXAM, 100, 75)]), 
+        Module('Vibrations and Waves', 10, [ModuleAssessment(Assessment.EXAM, 100, 85)]), 
+        Module('Group Project', 30, [ModuleAssessment(Assessment.COURSEWORK, 100, 66)])
+    ]
+
+    year4Modules = [
+        Module('Final Year Project', 60, [ModuleAssessment(Assessment.COURSEWORK, 100, 76)]), 
+        Module('Advanced Quantum Mechanics', 15, [ModuleAssessment(Assessment.EXAM, 100, 95)]), 
+        Module('Mathematical Modelling I', 15, [ModuleAssessment(Assessment.COURSEWORK, 40, 78), ModuleAssessment(Assessment.COURSEWORK, 60, 73)])
     ]
 
     year2 = UniversityYear(
@@ -32,10 +42,13 @@ def main():
         modules=year3Modules
         )
 
+    year4 = UniversityYear(yearNumber=4, yearWeightPercentage=40, modules=year4Modules)
+    print(year4.calculateYearScorePercentage())
+
     myDegree = Degree(years=[year2, year3])
 
     print(myDegree.calculateDegreeScore())
-    print(myDegree.calculateRequiredAverageForTargetScore(80))
+    print(myDegree.calculateRequiredAverageForTargetScore(77))
     myDegree.getScoreProjectionsPlot()
 
 
